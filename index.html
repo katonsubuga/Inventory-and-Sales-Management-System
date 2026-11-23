@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InventoryPro | Advanced Inventory & Sales</title>
+  <style>
+    :root {
+      --navy: #0b1424;
+      --navy2: #13223b;
+      --blue: #3578f6;
+      --bg: #f2f5fa;
+      --surface: #ffffff;
+      --text: #17212f;
+      --muted: #6b7a8f;
+      --border: #e2e8f0;
+      --green: #0e9f6e;
+      --amber: #d97706;
+      --red: #dc2626;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.07);
+      --radius: 14px;
+      --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 15px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* APP SHELL */
+    .app { display: flex; min-height: 100vh; }
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, var(--navy) 0%, #0f1c30 100%);
+      color: #fff;
+      padding: 24px 16px;
+      position: fixed;
+      inset: 0 auto 0 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      z-index: 100;
+      scrollbar-width: thin;
+      scrollbar-color: #2a3d58 transparent;
+    }
+    .sidebar::-webkit-scrollbar { width: 4px; }
+    .sidebar::-webkit-scrollbar-thumb { background: #2a3d58; border-radius: 8px; }
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding: 4px 10px 26px;
+    }
+    .brand-icon {
+      background: linear-gradient(135deg, #3b82f6, #60a5fa);
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      font-weight: 800; font-size: 19px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .brand h2 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+    .brand small { display: block; color: #94a3b8; font-size: 11px; margin-top: 2px; }
+    .navlabel {
+      font-size: 10px; color: #64748b; letter-spacing: 1.8px;
+      font-weight: 700; margin: 18px 10px 8px; text-transform: uppercase;
+    }
+    .nav button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #b0c0d4;
+      text-align: left;
+      padding: 11px 14px;
+      border-radius: 10px;
+      margin: 2px 0;
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 500;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      transition: background .15s, color .15s;
+      font-family: inherit;
+    }
+    .nav button:hover { background: #1e2f4a; color: #fff; }
+    .nav button.active {
+      background: #253d5e;
+      color: #fff;
+      box-shadow: inset 3px 0 0 var(--blue);
+    }
+    .sidebar-foot {
+      margin-top: auto;
+      padding: 20px 10px 8px;
+      border-top: 1px solid #1e2f4a;
+      color: #64748b;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+    .sidebar-foot .user-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .sidebar-foot .user-avatar {
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      background: #3b82f6;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 13px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .sidebar-foot .user-info { overflow: hidden; }
+    .sidebar-foot .user-info b { display: block; font-size: 13px; color: #e2e8f0; }
+    .sidebar-foot .user-info span { font-size: 11px; color: #94a3b8; }
+    .logout-btn {
+      background: transparent;
+      border: 1px solid #2a3d58;
+      color: #cbd5e1;
+      padding: 7px 12px;
+      border-radius: 8px;
+      font-size: 12px;
+      cursor: pointer;
+      width: 100%;
+      font-family: inherit;
+      transition: background .15s;
+    }
+    .logout-btn:hover { background: #1e2f4a; }
+
+    /* MAIN */
+    .main {
+      margin-left: 260px;
+      width: calc(100% - 260px);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    .topbar {
+      height: 70px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(8px);
+      background: rgba(255,255,255,.92);
+    }
+    .crumb { font-size: 13px; color: var(--muted); font-weight: 500; }
+    .crumb b { color: var(--text); font-weight: 700; }
+    .topright { display: flex; align-items: center; gap: 16px; }
+    .search {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 14px;
+      width: 240px;
+      font-size: 13px;
+      outline: none;
+      font-family: inherit;
+      background: #f8fafc;
+      transition: border .15s, box-shadow .15s;
+    }
+    .search:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(53,120,246,.12); background: #fff; }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: #dbeafe;
+      color: #1e4db7;
+      display: grid; place-items: center;
+      font-weight: 700; font-size: 13px;
+      cursor: pointer;
+      transition: box-shadow .15s;
+    }
+    .avatar:hover { box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
+
+    /* CONTENT */
+    .content {
+      padding: 28px 30px 40px;
+      max-width: 1600px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+    }
+    .pagehead {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 26px;
+      flex-wrap: wrap;
+    }
+    .pagehead h1 { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
+    .pagehead p { margin: 6px 0 0; color: var(--muted); font-size: 13.5px; max-width: 600px; }
+
+    /* BUTTONS */
+    .btn {
+      border: 0;
+      background: var(--blue);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background .15s, transform .1s, box-shadow .15s;
+      font-family: inherit;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn:hover { background: #2563eb; box-shadow: 0 4px 12px rgba(37,99,235,.25); }
+    .btn:active { transform: scale(.97); }
+    .btn.secondary {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn.secondary:hover { background: #f8fafc; box-shadow: var(--shadow-sm); }
+    .btn.danger { background: var(--red); }
+    .btn.danger:hover { background: #b91c1c; }
+    .btn:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+    .btn.sm { padding: 7px 12px; font-size: 12px; border-radius: 8px; }
+
+    /* CARDS & KPI */
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow .15s;
+    }
+    .card:hover { box-shadow: var(--shadow-md); }
+    .kpi { display: flex; justify-content: space-between; align-items: flex-start; }
+    .kpi-icon {
+      width: 42px; height: 42px;
+      border-radius: 12px;
+      display: grid; place-items: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+    .kpi .label { font-size: 12.5px; color: var(--muted); font-weight: 500; }
+    .kpi .value { font-size: 24px; font-weight: 800; margin-top: 8px; letter-spacing: -.5px; }
+    .trend { font-size: 11px; color: var(--green); margin-top: 6px; font-weight: 500; }
+
+    /* GRID 2 */
+    .grid2 {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+    .cardtitle {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .cardtitle h3 { font-size: 15.5px; font-weight: 700; }
+    .cardtitle small { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+    /* CHART */
+    .chart {
+      height: 220px;
+      display: flex;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 10px 4px 24px;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+    }
+    .barcol {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+      gap: 6px;
+    }
+    .bar {
+      width: min(32px, 85%);
+      background: linear-gradient(180deg, #60a5fa, #3b82f6);
+      border-radius: 6px 6px 2px 2px;
+      min-height: 4px;
+      transition: height .4s ease;
+    }
+    .barcol span { font-size: 10px; color: #64748b; font-weight: 600; }
+    .barcol label { font-size: 10px; color: var(--muted); font-weight: 500; }
+
+    /* STOCK ALERTS */
+    .stocklist { display: flex; flex-direction: column; gap: 12px; max-height: 260px; overflow-y: auto; }
+    .stockrow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .stockrow:last-child { border-bottom: 0; }
+    .stockico {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      background: #f1f5f9;
+      display: grid; place-items: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+    .stockrow .name { font-size: 12.5px; font-weight: 600; }
+    .stockrow small { display: block; color: var(--muted); margin-top: 2px; font-size: 11px; }
+    .stockpill {
+      margin-left: auto;
+      font-size: 10px;
+      padding: 4px 9px;
+      border-radius: 20px;
+      background: #fef3c7;
+      color: #92400e;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .stockpill.red { background: #fee2e2; color: #b91c1c; }
+
+    /* TABLES */
+    .tablecard {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+    }
+    .tabletop {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .tabletop h3 { font-size: 15.5px; font-weight: 700; }
+    .tabletop input {
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 12.5px;
+      font-family: inherit;
+      outline: none;
+      width: 200px;
+      max-width: 100%;
+    }
+    .tabletop input:focus { border-color: var(--blue); }
+
+    .tablewrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { border-collapse: collapse; width: 100%; min-width: 680px; }
+    th, td {
+      text-align: left;
+      padding: 13px 18px;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 12.5px;
+    }
+    th {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: #64748b;
+      background: #f8fafc;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+    td { color: #334155; vertical-align: middle; }
+    tr:hover td { background: #f8fafc; }
+
+    .status {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 10.5px;
+      font-weight: 600;
+      background: #d1fae5;
+      color: #065f46;
+      white-space: nowrap;
+    }
+    .status.low { background: #fef3c7; color: #92400e; }
+    .status.out { background: #fee2e2; color: #b91c1c; }
+    .actions { display: flex; gap: 6px; }
+    .mini {
+      border: 1px solid var(--border);
+      background: var(--surface);
+      border-radius: 6px;
+      padding: 5px 10px;
+      cursor: pointer;
+      font-size: 11px;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background .12s, border .12s;
+    }
+    .mini:hover { background: #f1f5f9; border-color: #cbd5e1; }
+    .empty { padding: 30px; text-align: center; color: var(--muted); font-size: 13px; }
+
+    /* PAGES */
+    .page { display: none; animation: fadeIn .2s ease; }
+    .page.active { display: block; }
+    @keyframes fadeIn { from { opacity: .6; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    /* FORMS */
+    .formgrid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
+    }
+    .field label {
+      font-size: 12px;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 6px;
+      color: #334155;
+    }
+    .field input, .field select, .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      outline: none;
+      font: inherit;
+      font-size: 13px;
+      background: #f8fafc;
+      transition: border .15s, box-shadow .15s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(53,120,246,.1);
+      background: #fff;
+    }
+    .field.full { grid-column: 1 / -1; }
+
+    /* MODAL */
+    .modalbg {
+      position: fixed; inset: 0;
+      background: rgba(11,20,36,.55);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      padding: 16px;
+    }
+    .modalbg.show { display: flex; }
+    .modal {
+      background: var(--surface);
+      border-radius: 18px;
+      width: min(580px, 100%);
+      padding: 26px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 60px rgba(0,0,0,.3);
+      animation: slideUp .22s ease;
+    }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+    .modal h2 { margin: 0 0 18px; font-size: 19px; font-weight: 800; }
+    .modalfooter { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+
+    .notice {
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 13px 15px;
+      border-radius: 10px;
+      color: #1e40af;
+      font-size: 12.5px;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    /* QUICK ACTIONS */
+    .quick { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* FOOTER */
+    .footer {
+      color: #94a3b8;
+      font-size: 11.5px;
+      text-align: center;
+      padding: 18px;
+      border-top: 1px solid var(--border);
+      margin-top: 20px;
+    }
+
+    /* TOAST */
+    .toast {
+      position: fixed;
+      bottom: 26px;
+      right: 26px;
+      background: #1e293b;
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: 0 12px 40px rgba(0,0,0,.25);
+      opacity: 0;
+      transform: translateY(16px);
+      transition: .28s ease;
+      z-index: 300;
+      font-size: 13px;
+      font-weight: 500;
+      max-width: 340px;
+    }
+    .toast.show { opacity: 1; transform: none; }
+
+    /* LOGIN SCREEN */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #0b1424 0%, #1e2f4a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      z-index: 999;
+      overflow-y: auto;
+    }
+    .login-card {
+      background: var(--surface);
+      border-radius: 22px;
+      padding: 38px 34px;
+      width: min(440px, 100%);
+      box-shadow: 0 30px 80px rgba(0,0,0,.4);
+      animation: slideUp .35s ease;
+    }
+    .login-card .brand { justify-content: center; padding-bottom: 22px; }
+    .login-card .brand h2 { color: var(--text); }
+    .login-card .brand small { color: var(--muted); }
+    .login-card h3 { font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 6px; }
+    .login-card .sub { text-align: center; color: var(--muted); font-size: 13px; margin-bottom: 24px; }
+    .login-card .field { margin-bottom: 15px; }
+    .login-card .btn { width: 100%; justify-content: center; padding: 12px; font-size: 14px; }
+    .login-foot { text-align: center; margin-top: 18px; font-size: 12.5px; color: var(--muted); }
+    .login-foot a { color: var(--blue); font-weight: 600; text-decoration: none; cursor: pointer; }
+    .login-foot a:hover { text-decoration: underline; }
+    .demo-accounts {
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .demo-accounts p { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #94a3b8; margin-bottom: 10px; }
+    .demo-accounts .acct {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--muted);
+      padding: 4px 0;
+      border-bottom: 1px dashed #f1f5f9;
+    }
+    .demo-accounts .acct:last-child { border-bottom: 0; }
+    .demo-accounts .acct b { color: var(--text); font-weight: 600; }
+    .demo-accounts .acct b small { display:block;color:var(--muted);font-weight:500;margin-top:2px; }
+    .demo-accounts .acct code { font-size:10.5px; }
+    .demo-use { margin-left:5px;border:1px solid #bfdbfe;background:#eff6ff;color:#1d4ed8;border-radius:6px;padding:4px 7px;font-size:10.5px;font-weight:600;cursor:pointer; }
+    .demo-use:hover { background:#dbeafe; }
+    #loginFeedback.error { display:block!important;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c; }
+    #loginFeedback.success { display:block!important;background:#ecfdf5;border:1px solid #bbf7d0;color:#166534; }
+
+    /* REGISTER MODAL */
+    .register-link { text-align: center; margin-top: 14px; font-size: 13px; }
+    .register-link a { color: var(--blue); font-weight: 600; cursor: pointer; text-decoration: none; }
+    .register-link a:hover { text-decoration: underline; }
+
+    /* ROLE BADGE */
+    .role-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+    }
+    .role-badge.super { background: #fef3c7; color: #92400e; }
+    .role-badge.manager { background: #dbeafe; color: #1e40af; }
+    .role-badge.sales { background: #d1fae5; color: #065f46; }
+    .role-badge.store { background: #e0e7ff; color: #3730a3; }
+    .role-badge.account { background: #fce7f3; color: #9d174d; }
+
+    /* RESPONSIVE */
+    .mobilemenu { display: none; }
+    @media (max-width: 1100px) {
+      .sidebar { width: 230px; }
+      .main { margin-left: 230px; width: calc(100% - 230px); }
+      .grid2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 800px) {
+      .sidebar { transform: translateX(-100%); transition: transform .25s ease; width: 260px; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; width: 100%; }
+      .mobilemenu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 6px 10px;
+        font-size: 18px;
+        cursor: pointer;
+        margin-right: 10px;
+      }
+      .search { width: 160px; }
+      .content { padding: 20px 16px 30px; }
+      .pagehead { flex-direction: column; align-items: flex-start; }
+      .cards { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .card { padding: 16px; }
+      .kpi .value { font-size: 20px; }
+      .formgrid { grid-template-columns: 1fr; }
+      .field.full { grid-column: auto; }
+      .chart { gap: 6px; height: 180px; }
+      .barcol span { font-size: 9px; }
+      .barcol label { font-size: 9px; }
+      .topbar { padding: 0 14px; height: 62px; }
+      .avatar { width: 32px; height: 32px; font-size: 12px; }
+      .login-card { padding: 28px 22px; }
+      .tabletop { flex-direction: column; align-items: flex-start; }
+      .tabletop input { width: 100%; }
+      .quick { flex-direction: column; }
+      .quick .btn { width: 100%; justify-content: center; }
+    }
+    @media (max-width: 480px) {
+      .cards { grid-template-columns: 1fr; }
+      .topright .search { width: 120px; font-size: 12px; padding: 7px 10px; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    .hidden { display: none !important; }
+    .text-muted { color: var(--muted); }
+    .mt-2 { margin-top: 8px; }
+    .mb-2 { margin-bottom: 8px; }
+    .flex { display: flex; }
+    .gap-2 { gap: 8px; }
+    .items-center { align-items: center; }
+    .justify-between { justify-content: space-between; }
+    .w-full { width: 100%; }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- LOGIN SCREEN                                                 -->
+<!-- ============================================================ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="brand">
+      <div class="brand-icon">IP</div>
+      <div>
+        <h2>InventoryPro</h2>
+        <small>Advanced Inventory & Sales Suite</small>
+      </div>
+    </div>
+    <h3>Welcome back</h3>
+    <p class="sub">Sign in to your workspace</p>
+
+    <form id="loginForm" autocomplete="off">
+      <div class="field">
+        <label>Username</label>
+        <input name="username" id="loginUsername" placeholder="Enter your username" required autocomplete="username">
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input name="password" id="loginPassword" type="password" placeholder="Enter your password" required autocomplete="current-password">
+      </div>
+      <button class="btn" type="submit" style="margin-top:6px">Sign in</button>
+    </form>
+
+    <div class="register-link">
+      New here? <a id="registerLink">Create an account</a>
+    </div>
+
+    <div id="loginFeedback" role="status" aria-live="polite" style="display:none;margin:12px 0;padding:10px 12px;border-radius:9px;font-size:12.5px"></div>
+    <div class="demo-accounts">
+      <p>Demo accounts · Select Use to fill login</p>
+      <div class="acct"><b>Abdul Baari <small>Super Admin · baari</small></b><span><code>baari#134</code> <button type="button" class="demo-use" data-username="baari" data-password="baari#134">Use</button></span></div>
+      <div class="acct"><b>Abdul Haafiz <small>Manager · haafiz</small></b><span><code>haafiz@114</code> <button type="button" class="demo-use" data-username="haafiz" data-password="haafiz@114">Use</button></span></div>
+      <div class="acct"><b>Abdul Hakam <small>Sales · hakam</small></b><span><code>hakam#456</code> <button type="button" class="demo-use" data-username="hakam" data-password="hakam#456">Use</button></span></div>
+      <div class="acct"><b>Abdul Hakeem <small>Storekeeper · hakeem</small></b><span><code>hakeem@786</code> <button type="button" class="demo-use" data-username="hakeem" data-password="hakeem@786">Use</button></span></div>
+      <div class="acct"><b>Harima Sarah <small>Accountant · sarah</small></b><span><code>sarah#598</code> <button type="button" class="demo-use" data-username="sarah" data-password="sarah#598">Use</button></span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- APP SHELL                                                     -->
+<!-- ============================================================ -->
+<div class="app" id="appShell" style="display:none">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="brand-icon">IP</div>
+      <div>
+        <h2>InventoryPro</h2>
+        <small>Inventory & Sales Suite</small>
+      </div>
+    </div>
+
+    <div class="navlabel">Workspace</div>
+    <nav class="nav" id="mainNav">
+      <button data-page="dashboard" class="active">▦ &nbsp; Dashboard</button>
+      <button data-page="products">▣ &nbsp; Products & Inventory</button>
+      <button data-page="sales">▤ &nbsp; Sales & POS</button>
+      <button data-page="customers">♙ &nbsp; Customers</button>
+      <button data-page="suppliers">♧ &nbsp; Suppliers</button>
+      <button data-page="reports">▥ &nbsp; Reports</button>
+    </nav>
+
+    <div class="navlabel">Management</div>
+    <nav class="nav">
+      <button data-page="settings">⚙ &nbsp; Settings</button>
+      <button data-page="users" id="usersNavBtn" style="display:none">👥 &nbsp; User Management</button>
+      <button data-page="audit" id="auditNavBtn" style="display:none">📋 &nbsp; Audit Log</button>
+    </nav>
+
+    <div class="sidebar-foot" id="sidebarFoot"></div>
+  </aside>
+
+  <main class="main">
+    <header class="topbar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <button class="mobilemenu" id="mobileMenuBtn">☰</button>
+        <div class="crumb">Workspace / <b id="crumb">Dashboard</b></div>
+      </div>
+      <div class="topright">
+        <input class="search" id="globalSearch" placeholder="⌕  Search products..." oninput="globalSearch(this.value)">
+        <div class="avatar" id="topAvatar" title="Profile">AD</div>
+      </div>
+    </header>
+
+    <div class="content" id="pageContent">
+      <section class="page active" id="dashboard">
+        <div class="pagehead">
+          <div>
+            <h1>Dashboard Overview</h1>
+            <p>Welcome back! Here's what's happening with your business today.</p>
+          </div>
+          <button class="btn" id="dashAddProductBtn">＋ Add Product</button>
+        </div>
+        <div class="cards" id="kpis"></div>
+        <div class="grid2">
+          <div class="card">
+            <div class="cardtitle"><h3>Sales Overview</h3><small>Demo activity</small></div>
+            <div class="chart" id="chart"></div>
+          </div>
+          <div class="card">
+            <div class="cardtitle"><h3>Stock Alerts</h3><small id="alertcount">0 alerts</small></div>
+            <div class="stocklist" id="stockalerts"></div>
+          </div>
+        </div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>Recent Transactions</h3>
+            <button class="btn secondary sm" id="viewSalesBtn">View Sales</button>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Receipt</th><th>Date</th><th>Items</th><th>Payment</th><th>Total</th></tr></thead>
+              <tbody id="recentSales"></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="quick">
+          <button class="btn" id="quickRecordSaleBtn">＋ Record Sale</button>
+          <button class="btn secondary" id="quickViewInventoryBtn">View Inventory</button>
+          <button class="btn secondary" id="quickViewReportsBtn">View Reports</button>
+        </div>
+      </section>
+
+      <section class="page" id="products">
+        <div class="pagehead">
+          <div><h1>Products & Inventory</h1><p>Manage your catalog, pricing and stock levels.</p></div>
+          <button class="btn" id="prodAddProductBtn">＋ Add Product</button>
+        </div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>Product Catalog</h3>
+            <input id="productSearch" placeholder="Search catalog..." oninput="renderProducts(this.value)">
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Product</th><th>SKU</th><th>Category</th><th>Cost</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="productTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="sales">
+        <div class="pagehead">
+          <div><h1>Sales & POS</h1><p>Record a transaction and update stock automatically.</p></div>
+          <button class="btn" id="salesNewSaleBtn">＋ New Sale</button>
+        </div>
+        <div class="cards" id="salesKpis"></div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>Sales Transactions</h3>
+            <input placeholder="Search receipts..." id="salesSearch" oninput="renderSales(this.value)">
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Receipt</th><th>Date</th><th>Items</th><th>Payment</th><th>Total</th></tr></thead>
+              <tbody id="salesTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="customers">
+        <div class="pagehead">
+          <div><h1>Customers</h1><p>Maintain customer contacts and relationship history.</p></div>
+          <button class="btn" id="custAddBtn">＋ Add Customer</button>
+        </div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>Customer Directory</h3>
+            <input placeholder="Search customers..." oninput="renderCustomers(this.value)">
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Customer</th><th>Phone</th><th>Email</th><th>Registered</th></tr></thead>
+              <tbody id="customerTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="suppliers">
+        <div class="pagehead">
+          <div><h1>Suppliers</h1><p>Keep supplier contact details for replenishment.</p></div>
+          <button class="btn" id="suppAddBtn">＋ Add Supplier</button>
+        </div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>Supplier Directory</h3>
+            <input placeholder="Search suppliers..." oninput="renderSuppliers(this.value)">
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Supplier</th><th>Contact Person</th><th>Phone</th><th>Email</th></tr></thead>
+              <tbody id="supplierTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="reports">
+        <div class="pagehead">
+          <div><h1>Reports & Analytics</h1><p>Summary based on recorded demo sales and current inventory.</p></div>
+          <button class="btn secondary" id="exportBtn">⇩ Export Inventory CSV</button>
+        </div>
+        <div class="cards" id="reportKpis"></div>
+        <div class="grid2">
+          <div class="card">
+            <div class="cardtitle"><h3>Inventory valuation</h3></div>
+            <p id="inventoryValue" style="font-size:24px;font-weight:700"></p>
+            <small style="color:var(--muted)">Estimated cost value of current stock</small>
+          </div>
+          <div class="card">
+            <div class="cardtitle"><h3>Sales summary</h3></div>
+            <p id="reportSales" style="font-size:24px;font-weight:700"></p>
+            <small style="color:var(--muted)">Total recorded revenue</small>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="settings">
+        <div class="pagehead">
+          <div><h1>System Settings</h1><p>Prototype information and data controls.</p></div>
+        </div>
+        <div class="card">
+          <h3>About InventoryPro</h3>
+          <p style="color:var(--muted);font-size:13px;line-height:1.7">This is an interactive front-end prototype. Demo products, sales, customers and suppliers are saved in this browser using local storage. It is not yet connected to a secure server database.</p>
+          <button class="btn secondary" id="resetDemoBtn" style="margin-top:12px">Reset demo data</button>
+        </div>
+      </section>
+
+      <section class="page" id="users">
+        <div class="pagehead">
+          <div><h1>User Management</h1><p>Create and manage system accounts and roles.</p></div>
+          <button class="btn" id="addUserBtn">＋ Add User</button>
+        </div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>System Users</h3>
+            <input placeholder="Search users..." oninput="renderUsers(this.value)">
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Created</th><th>Actions</th></tr></thead>
+              <tbody id="userTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="page" id="audit">
+        <div class="pagehead">
+          <div><h1>Audit Log</h1><p>System activity and changes for accountability.</p></div>
+          <button class="btn secondary" id="clearAuditBtn">Clear Log</button>
+        </div>
+        <div class="tablecard">
+          <div class="tabletop">
+            <h3>Recent Activity</h3>
+          </div>
+          <div class="tablewrap">
+            <table>
+              <thead><tr><th>Timestamp</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+              <tbody id="auditTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <div class="footer">InventoryPro · Advanced Interactive Demo Prototype</div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CONTAINER -->
+<div class="modalbg" id="modalbg" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal"></div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   INVENTORYPRO – ADVANCED INVENTORY & SALES SYSTEM
+   Fully working auth, registration, role-based access.
+   ================================================================ */
+
+/* ——— 1. DATA ——— */
+const initialProducts = [
+  { id: 1, name: 'Wireless Mouse', sku: 'ACC-001', category: 'Accessories', cost: 18000, price: 28000, stock: 24, min: 5 },
+  { id: 2, name: 'USB Keyboard', sku: 'ACC-002', category: 'Accessories', cost: 22000, price: 35000, stock: 14, min: 4 },
+  { id: 3, name: 'Laptop HP EliteBook', sku: 'LPT-001', category: 'Laptops', cost: 950000, price: 1250000, stock: 6, min: 2 },
+  { id: 4, name: 'Flash Disk 32GB', sku: 'STO-001', category: 'Storage', cost: 18000, price: 30000, stock: 3, min: 5 },
+  { id: 5, name: 'HDMI Cable 2m', sku: 'CAB-001', category: 'Cables', cost: 12000, price: 20000, stock: 0, min: 3 },
+  { id: 6, name: 'Laptop Charger', sku: 'PWR-001', category: 'Power', cost: 45000, price: 65000, stock: 8, min: 3 }
+];
+
+const initialUsers = [
+  { id: 'u1', name: 'Abdul Baari', username: 'baari', password: 'baari#134', role: 'super', created: '2025-01-15' },
+  { id: 'u2', name: 'Abdul Haafiz', username: 'haafiz', password: 'haafiz@114', role: 'manager', created: '2025-01-15' },
+  { id: 'u3', name: 'Abdul Hakam', username: 'hakam', password: 'hakam#456', role: 'sales', created: '2025-01-15' },
+  { id: 'u4', name: 'Abdul Hakeem', username: 'hakeem', password: 'hakeem@786', role: 'store', created: '2025-01-15' },
+  { id: 'u5', name: 'Harima Sarah', username: 'sarah', password: 'sarah#598', role: 'account', created: '2025-01-15' }
+];
+
+const KEYS = {
+  products: 'ip_products_v3',
+  sales: 'ip_sales_v3',
+  customers: 'ip_customers_v3',
+  suppliers: 'ip_suppliers_v3',
+  users: 'ip_users_v3',
+  audit: 'ip_audit_v3'
+};
+
+const load = (k, fb) => {
+  try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; }
+  catch (e) { return fb; }
+};
+const save = (k, d) => { try { localStorage.setItem(k, JSON.stringify(d)); } catch (e) {} };
+
+let products = load(KEYS.products, initialProducts);
+let sales = load(KEYS.sales, []);
+let customers = load(KEYS.customers, []);
+let suppliers = load(KEYS.suppliers, []);
+let users = load(KEYS.users, initialUsers);
+let auditLog = load(KEYS.audit, []);
+let currentUser = null;
+
+/* ——— 2. HELPERS ——— */
+const money = (n) => 'UGX ' + Number(n || 0).toLocaleString('en-UG');
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function toast(msg, ms = 2600) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function saveAll() {
+  save(KEYS.products, products);
+  save(KEYS.sales, sales);
+  save(KEYS.customers, customers);
+  save(KEYS.suppliers, suppliers);
+  save(KEYS.users, users);
+  save(KEYS.audit, auditLog);
+}
+
+function addAudit(action, details) {
+  if (!currentUser) return;
+  auditLog.unshift({
+    id: Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+    timestamp: new Date().toISOString(),
+    user: currentUser.name,
+    username: currentUser.username,
+    action,
+    details: details || ''
+  });
+  if (auditLog.length > 500) auditLog = auditLog.slice(0, 500);
+  save(KEYS.audit, auditLog);
+  if (document.getElementById('auditTable')) renderAudit();
+}
+
+function status(p) {
+  return p.stock <= 0
+    ? '<span class="status out">Out of stock</span>'
+    : p.stock <= p.min
+      ? '<span class="status low">Low stock</span>'
+      : '<span class="status">In stock</span>';
+}
+
+function getRoleLabel(role) {
+  return { super: 'Super Admin', manager: 'Manager', sales: 'Sales Attendant', store: 'Storekeeper', account: 'Accountant' }[role] || role;
+}
+
+function getRoleBadge(role) {
+  const cls = { super: 'super', manager: 'manager', sales: 'sales', store: 'store', account: 'account' }[role] || 'account';
+  return `<span class="role-badge ${cls}">${getRoleLabel(role)}</span>`;
+}
+
+/* ——— 3. AUTH ——— */
+function showLoginFeedback(message, type = 'error') {
+  const el = document.getElementById('loginFeedback');
+  if (!el) return;
+  if (!message) { el.textContent = ''; el.className = ''; el.style.display = 'none'; return; }
+  el.textContent = message;
+  el.className = type;
+  el.style.display = 'block';
+}
+function login(username, password) {
+  if (!username || !password) { showLoginFeedback('Please enter both username and password.', 'error'); return false; }
+  const user = users.find(u => String(u.username).toLowerCase() === username.toLowerCase() && String(u.password) === password);
+  if (!user) { showLoginFeedback('Login failed. Check the username and password, or select a demo account below.', 'error'); return false; }
+  showLoginFeedback('', '');
+  currentUser = user;
+  addAudit('Login', `User ${user.name} signed in`);
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'flex';
+  updateSidebarUser();
+  applyPermissions();
+  renderAll();
+  switchPage('dashboard');
+  toast(`Welcome, ${user.name}`);
+  return true;
+}
+
+function logout() {
+  if (currentUser) addAudit('Logout', `User ${currentUser.name} signed out`);
+  currentUser = null;
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('loginForm').reset();
+  closeModal();
+  toast('Signed out');
+}
+
+function updateSidebarUser() {
+  const foot = document.getElementById('sidebarFoot');
+  if (!currentUser) { foot.innerHTML = ''; return; }
+  const initials = currentUser.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+  foot.innerHTML = `
+    <div class="user-badge">
+      <div class="user-avatar">${esc(initials)}</div>
+      <div class="user-info">
+        <b>${esc(currentUser.name)}</b>
+        <span>${getRoleLabel(currentUser.role)}</span>
+      </div>
+    </div>
+    <button class="logout-btn" id="logoutBtn">Sign out</button>
+  `;
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+  document.getElementById('topAvatar').textContent = initials;
+  document.getElementById('topAvatar').title = currentUser.name;
+}
+
+/* ——— 4. PERMISSIONS ——— */
+function applyPermissions() {
+  if (!currentUser) return;
+  const role = currentUser.role;
+  document.getElementById('usersNavBtn').style.display = role === 'super' ? 'block' : 'none';
+  document.getElementById('auditNavBtn').style.display = role === 'super' ? 'block' : 'none';
+
+  // Hide/show action buttons
+  const canEditProducts = ['super', 'manager', 'store'].includes(role);
+  const canDeleteProducts = role === 'super';
+  const canSale = ['super', 'manager', 'sales'].includes(role);
+  const canManageUsers = role === 'super';
+
+  // Dashboard add product
+  const dashAdd = document.getElementById('dashAddProductBtn');
+  if (dashAdd) dashAdd.style.display = canEditProducts ? 'inline-flex' : 'none';
+
+  // Products page add
+  const prodAdd = document.getElementById('prodAddProductBtn');
+  if (prodAdd) prodAdd.style.display = canEditProducts ? 'inline-flex' : 'none';
+
+  // Sales new
+  const salesNew = document.getElementById('salesNewSaleBtn');
+  if (salesNew) salesNew.style.display = canSale ? 'inline-flex' : 'none';
+
+  // Quick record sale
+  const quickSale = document.getElementById('quickRecordSaleBtn');
+  if (quickSale) quickSale.style.display = canSale ? 'inline-flex' : 'none';
+
+  // User management add
+  const addUser = document.getElementById('addUserBtn');
+  if (addUser) addUser.style.display = canManageUsers ? 'inline-flex' : 'none';
+
+  // Reset demo
+  const resetBtn = document.getElementById('resetDemoBtn');
+  if (resetBtn) resetBtn.style.display = role === 'super' ? 'inline-flex' : 'none';
+
+  // Clear audit
+  const clearAudit = document.getElementById('clearAuditBtn');
+  if (clearAudit) clearAudit.style.display = role === 'super' ? 'inline-flex' : 'none';
+
+  // Export
+  const exportBtn = document.getElementById('exportBtn');
+  if (exportBtn) exportBtn.style.display = ['super', 'manager', 'account'].includes(role) ? 'inline-flex' : 'none';
+}
+
+/* ——— 5. NAVIGATION ——— */
+function switchPage(pageId) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  const target = document.getElementById(pageId);
+  if (target) target.classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.classList.toggle('active', b.dataset.page === pageId);
+  });
+  const crumb = document.getElementById('crumb');
+  const label = document.querySelector(`.nav button[data-page="${pageId}"]`);
+  crumb.textContent = label ? label.textContent.replace(/^[^\w]*/, '').trim() : pageId;
+  document.getElementById('sidebar').classList.remove('open');
+  renderAll();
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+function globalSearch(q) {
+  if (!q.trim()) return;
+  switchPage('products');
+  const s = document.getElementById('productSearch');
+  if (s) s.value = q;
+  renderProducts(q);
+}
+
+/* ——— 6. RENDER ——— */
+
+/* Dashboard */
+function renderDashboard() {
+  if (!currentUser) return;
+  const revenue = sales.reduce((a, s) => a + s.total, 0);
+  const units = products.reduce((a, p) => a + p.stock, 0);
+  const lowStock = products.filter(p => p.stock <= p.min).length;
+
+  document.getElementById('kpis').innerHTML = [
+    ['◈', 'Products', products.length, 'Registered catalog', '#e9f1ff', '#3478f5'],
+    ['▤', "Today's Sales", money(sales.filter(s => s.date === new Date().toLocaleDateString()).reduce((a, s) => a + s.total, 0)), 'Sales today', '#e5f7ed', '#18a66a'],
+    ['⚠', 'Low Stock', lowStock, 'Restock attention', '#fff3df', '#d38b17'],
+    ['◉', 'Stock Units', units.toLocaleString(), 'Units on hand', '#f1eaff', '#8758db']
+  ].map(([icon, label, value, trend, bg, color]) => `
+    <div class="card">
+      <div class="kpi">
+        <div>
+          <div class="label">${label}</div>
+          <div class="value">${value}</div>
+          <div class="trend">${trend}</div>
+        </div>
+        <div class="kpi-icon" style="background:${bg};color:${color}">${icon}</div>
+      </div>
+    </div>
+  `).join('');
+
+  const vals = [45, 68, 51, 82, 63, 95, 76];
+  const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  document.getElementById('chart').innerHTML = vals.map((v, i) => `
+    <div class="barcol">
+      <span>${v}%</span>
+      <div class="bar" style="height:${v}%"></div>
+      <label>${days[i]}</label>
+    </div>
+  `).join('');
+
+  const alerts = products.filter(p => p.stock <= p.min).slice(0, 5);
+  document.getElementById('alertcount').textContent = alerts.length + ' alerts';
+  document.getElementById('stockalerts').innerHTML = alerts.length
+    ? alerts.map(p => `
+        <div class="stockrow">
+          <div class="stockico">▣</div>
+          <div><div class="name">${esc(p.name)}</div><small>${p.stock} units remaining</small></div>
+          <span class="stockpill ${p.stock === 0 ? 'red' : ''}">${p.stock === 0 ? 'Out of stock' : 'Low stock'}</span>
+        </div>
+      `).join('')
+    : '<div class="empty">All stock levels look good.</div>';
+
+  document.getElementById('recentSales').innerHTML = sales.slice(0, 5).map(s => `
+    <tr>
+      <td><b>${s.id}</b></td><td>${s.date}</td>
+      <td>${s.items.reduce((a, b) => a + b.qty, 0)} units</td>
+      <td>${esc(s.payment)}</td>
+      <td><b>${money(s.total)}</b></td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="empty">No sales yet.</td></tr>';
+}
+
+/* Products */
+function renderProducts(q = '') {
+  const list = products.filter(p =>
+    (p.name + ' ' + p.sku + ' ' + p.category).toLowerCase().includes(q.toLowerCase())
+  );
+  const canEdit = currentUser && ['super', 'manager', 'store'].includes(currentUser.role);
+  const canDelete = currentUser && currentUser.role === 'super';
+
+  document.getElementById('productTable').innerHTML = list.map(p => `
+    <tr>
+      <td><b>${esc(p.name)}</b></td>
+      <td>${esc(p.sku)}</td>
+      <td>${esc(p.category)}</td>
+      <td>${money(p.cost)}</td>
+      <td>${money(p.price)}</td>
+      <td>${p.stock}</td>
+      <td>${status(p)}</td>
+      <td>
+        <div class="actions">
+          ${canEdit ? `<button class="mini" data-action="edit-product" data-id="${p.id}">Edit</button>` : ''}
+          ${canDelete ? `<button class="mini" data-action="delete-product" data-id="${p.id}" style="color:var(--red)">Delete</button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="8" class="empty">No products found.</td></tr>';
+}
+
+/* Sales */
+function renderSales(q = '') {
+  const list = sales.filter(s =>
+    (s.id + ' ' + s.payment + ' ' + s.items.map(i => i.name).join(' ')).toLowerCase().includes(q.toLowerCase())
+  );
+  document.getElementById('salesTable').innerHTML = list.map(s => `
+    <tr>
+      <td><b>${s.id}</b></td>
+      <td>${s.date}</td>
+      <td>${s.items.reduce((a, b) => a + b.qty, 0)} units · ${s.items.map(i => esc(i.name)).join(', ')}</td>
+      <td>${esc(s.payment)}</td>
+      <td><b>${money(s.total)}</b></td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="empty">No sales recorded yet.</td></tr>';
+}
+
+/* Customers */
+function renderCustomers(q = '') {
+  const list = customers.filter(c =>
+    (c.name + ' ' + c.phone + ' ' + c.email).toLowerCase().includes(q.toLowerCase())
+  );
+  document.getElementById('customerTable').innerHTML = list.map(c => `
+    <tr>
+      <td><b>${esc(c.name)}</b></td>
+      <td>${esc(c.phone)}</td>
+      <td>${esc(c.email || '—')}</td>
+      <td>${c.date}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="empty">No customers registered.</td></tr>';
+}
+
+/* Suppliers */
+function renderSuppliers(q = '') {
+  const list = suppliers.filter(c =>
+    (c.name + ' ' + (c.contact || '') + ' ' + c.phone + ' ' + c.email).toLowerCase().includes(q.toLowerCase())
+  );
+  document.getElementById('supplierTable').innerHTML = list.map(c => `
+    <tr>
+      <td><b>${esc(c.name)}</b></td>
+      <td>${esc(c.contact || '—')}</td>
+      <td>${esc(c.phone)}</td>
+      <td>${esc(c.email || '—')}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="empty">No suppliers registered.</td></tr>';
+}
+
+/* Reports */
+function renderReports() {
+  const revenue = sales.reduce((a, s) => a + s.total, 0);
+  const cost = sales.reduce((a, s) => a + s.items.reduce((t, i) => t + i.qty * i.cost, 0), 0);
+  const profit = revenue - cost;
+  const iv = products.reduce((a, p) => a + p.stock * p.cost, 0);
+
+  document.getElementById('reportKpis').innerHTML = [
+    ['Total Revenue', money(revenue)],
+    ['Estimated Gross Profit', money(profit)],
+    ['Products', products.length],
+    ['Stock Units', products.reduce((a, p) => a + p.stock, 0)]
+  ].map(([label, value]) => `
+    <div class="card">
+      <div class="label" style="font-size:12px;color:var(--muted)">${label}</div>
+      <div style="font-size:21px;font-weight:750;margin-top:10px">${value}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('inventoryValue').textContent = money(iv);
+  document.getElementById('reportSales').textContent = money(revenue);
+}
+
+/* Sales KPI */
+function renderSalesKpis() {
+  const totalRevenue = sales.reduce((a, s) => a + s.total, 0);
+  const totalUnits = sales.reduce((a, s) => a + s.items.reduce((t, i) => t + i.qty, 0), 0);
+  const avgSale = sales.length ? totalRevenue / sales.length : 0;
+
+  document.getElementById('salesKpis').innerHTML = [
+    ['Total Revenue', money(totalRevenue)],
+    ['Transactions', sales.length],
+    ['Units Sold', totalUnits],
+    ['Avg. Sale', money(avgSale)]
+  ].map(([label, value]) => `
+    <div class="card">
+      <div class="label" style="font-size:12px;color:var(--muted)">${label}</div>
+      <div style="font-size:21px;font-weight:750;margin-top:10px">${value}</div>
+    </div>
+  `).join('');
+}
+
+/* Users */
+function renderUsers(q = '') {
+  if (!currentUser || currentUser.role !== 'super') {
+    const tbody = document.getElementById('userTable');
+    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="empty">Access restricted.</td></tr>';
+    return;
+  }
+  const list = users.filter(u =>
+    (u.name + ' ' + u.username + ' ' + getRoleLabel(u.role)).toLowerCase().includes(q.toLowerCase())
+  );
+  document.getElementById('userTable').innerHTML = list.map(u => `
+    <tr>
+      <td><b>${esc(u.name)}</b></td>
+      <td>${esc(u.username)}</td>
+      <td>${getRoleBadge(u.role)}</td>
+      <td>${u.created || '—'}</td>
+      <td>
+        <div class="actions">
+          <button class="mini" data-action="edit-user" data-id="${u.id}">Edit</button>
+          ${u.id !== currentUser.id ? `<button class="mini" data-action="delete-user" data-id="${u.id}" style="color:var(--red)">Delete</button>` : ''}
+        </div>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="5" class="empty">No users found.</td></tr>';
+}
+
+/* Audit */
+function renderAudit() {
+  if (!currentUser || currentUser.role !== 'super') return;
+  const tbody = document.getElementById('auditTable');
+  if (!tbody) return;
+  tbody.innerHTML = auditLog.slice(0, 100).map(a => `
+    <tr>
+      <td style="font-size:11px;white-space:nowrap">${new Date(a.timestamp).toLocaleString()}</td>
+      <td>${esc(a.user)}</td>
+      <td><b>${esc(a.action)}</b></td>
+      <td style="font-size:11.5px">${esc(a.details)}</td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" class="empty">No activity recorded.</td></tr>';
+}
+
+/* Render All */
+function renderAll() {
+  renderProducts(document.getElementById('productSearch')?.value || '');
+  renderSales(document.getElementById('salesSearch')?.value || '');
+  renderCustomers();
+  renderSuppliers();
+  renderDashboard();
+  renderReports();
+  renderSalesKpis();
+  renderUsers();
+  renderAudit();
+}
+
+/* ——— 7. MODAL ——— */
+function openModal(html) {
+  document.getElementById('modal').innerHTML = html;
+  document.getElementById('modalbg').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalbg').classList.remove('show');
+}
+
+/* ——— 8. PRODUCT CRUD ——— */
+function openProductModal(p = null) {
+  if (!currentUser || !['super', 'manager', 'store'].includes(currentUser.role)) {
+    toast('You do not have permission to modify products');
+    return;
+  }
+  openModal(`
+    <h2>${p ? 'Edit Product' : 'Add New Product'}</h2>
+    <form id="productForm">
+      <div class="formgrid">
+        <div class="field full"><label>Product Name *</label><input name="name" required value="${esc(p?.name || '')}"></div>
+        <div class="field"><label>SKU *</label><input name="sku" required value="${esc(p?.sku || '')}"></div>
+        <div class="field"><label>Category</label><input name="category" value="${esc(p?.category || 'General')}"></div>
+        <div class="field"><label>Cost Price (UGX)</label><input name="cost" type="number" min="0" required value="${p?.cost || 0}"></div>
+        <div class="field"><label>Selling Price (UGX)</label><input name="price" type="number" min="0" required value="${p?.price || 0}"></div>
+        <div class="field"><label>Stock Quantity</label><input name="stock" type="number" min="0" required value="${p?.stock || 0}"></div>
+        <div class="field"><label>Low Stock Alert At</label><input name="min" type="number" min="0" value="${p?.min || 5}"></div>
+      </div>
+      <div class="modalfooter">
+        <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn">Save Product</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('productForm').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const obj = {
+      id: p?.id || Date.now(),
+      name: f.get('name').trim(),
+      sku: f.get('sku').trim(),
+      category: f.get('category').trim(),
+      cost: +f.get('cost'),
+      price: +f.get('price'),
+      stock: +f.get('stock'),
+      min: +f.get('min')
+    };
+    if (products.some(x => x.sku.toLowerCase() === obj.sku.toLowerCase() && x.id !== obj.id)) {
+      toast('SKU already exists'); return;
+    }
+    if (p) {
+      products = products.map(x => x.id === p.id ? obj : x);
+      addAudit('Edit Product', `Updated ${obj.name} (${obj.sku})`);
+    } else {
+      products.unshift(obj);
+      addAudit('Add Product', `Added ${obj.name} (${obj.sku})`);
+    }
+    saveAll();
+    closeModal();
+    renderAll();
+    toast(p ? 'Product updated' : 'Product added');
+  };
+}
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (p) openProductModal(p);
+}
+
+function deleteProduct(id) {
+  if (!currentUser || currentUser.role !== 'super') {
+    toast('Only Super Admin can delete products'); return;
+  }
+  if (!confirm('Delete this product from the catalog?')) return;
+  const p = products.find(x => x.id === id);
+  products = products.filter(x => x.id !== id);
+  saveAll();
+  if (p) addAudit('Delete Product', `Removed ${p.name} (${p.sku})`);
+  renderAll();
+  toast('Product deleted');
+}
+
+/* ——— 9. SALES ——— */
+function openSaleModal() {
+  if (!currentUser || !['super', 'manager', 'sales'].includes(currentUser.role)) {
+    toast('You do not have permission to record sales'); return;
+  }
+  const available = products.filter(p => p.stock > 0);
+  const options = available.map(p => `<option value="${p.id}">${esc(p.name)} — ${money(p.price)} (stock ${p.stock})</option>`).join('');
+  openModal(`
+    <h2>Record a Sale</h2>
+    <div class="notice">Choose products and quantities. Stock will be deducted after you confirm this transaction.</div>
+    <form id="saleForm">
+      <div class="formgrid">
+        <div class="field full"><label>Product *</label><select name="product" required>${options || '<option>No available stock</option>'}</select></div>
+        <div class="field"><label>Quantity *</label><input name="qty" type="number" min="1" value="1" required></div>
+        <div class="field"><label>Payment Method</label><select name="payment"><option>Cash</option><option>MTN MoMo</option><option>Airtel Money</option><option>Bank Transfer</option><option>Card</option></select></div>
+        <div class="field full"><label>Customer (optional)</label><input name="customer" placeholder="Walk-in customer"></div>
+      </div>
+      <div class="modalfooter">
+        <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn" ${options ? '' : 'disabled'}>Complete Sale</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('saleForm').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const p = products.find(p => p.id == f.get('product'));
+    const qty = +f.get('qty');
+    if (!p || qty < 1 || qty > p.stock) { toast('Quantity exceeds available stock'); return; }
+    const item = { name: p.name, qty, price: p.price, cost: p.cost };
+    p.stock -= qty;
+    const sale = {
+      id: 'INV-' + Date.now().toString().slice(-6),
+      date: new Date().toLocaleDateString(),
+      items: [item],
+      payment: f.get('payment'),
+      customer: f.get('customer') || 'Walk-in',
+      total: item.price * qty
+    };
+    sales.unshift(sale);
+    saveAll();
+    addAudit('Record Sale', `Sale ${sale.id} – ${money(sale.total)} (${qty} × ${p.name})`);
+    closeModal();
+    renderAll();
+    toast('Sale completed · ' + money(sale.total));
+    receipt(sale);
+  };
+}
+
+function receipt(s) {
+  const text = `INVENTORYPRO\nReceipt: ${s.id}\nDate: ${s.date}\nCustomer: ${s.customer}\n\n${s.items.map(i => `${i.name} x${i.qty} — ${money(i.price * i.qty)}`).join('\n')}\n\nTOTAL: ${money(s.total)}\nPayment: ${s.payment}\nThank you!`;
+  if (confirm('Sale completed. Would you like to view/print the receipt?')) {
+    const w = window.open('', 'receipt', 'width=400,height=600');
+    if (w) {
+      w.document.write('<pre style="font:14px monospace;white-space:pre-wrap;padding:20px">' + esc(text) + '</pre><button onclick="window.print()">Print receipt</button>');
+      w.document.close();
+    }
+  }
+}
+
+/* ——— 10. CUSTOMERS & SUPPLIERS ——— */
+function openSimpleModal(type) {
+  if (!currentUser) return;
+  const isC = type === 'customer';
+  const title = isC ? 'Add Customer' : 'Add Supplier';
+  openModal(`
+    <h2>${title}</h2>
+    <form id="simpleForm">
+      <div class="formgrid">
+        <div class="field full"><label>${isC ? 'Customer' : 'Supplier'} Name *</label><input name="name" required></div>
+        <div class="field"><label>${isC ? 'Phone' : 'Contact Person'} *</label><input name="phone" required></div>
+        <div class="field"><label>Email</label><input name="email" type="email"></div>
+        ${isC ? '' : '<div class="field full"><label>Contact Person</label><input name="contact"></div>'}
+      </div>
+      <div class="modalfooter">
+        <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn">Save</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('simpleForm').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const obj = {
+      name: f.get('name'),
+      phone: f.get('phone'),
+      email: f.get('email'),
+      date: new Date().toLocaleDateString(),
+      contact: f.get('contact') || ''
+    };
+    if (isC) { customers.unshift(obj); addAudit('Add Customer', `Added customer ${obj.name}`); }
+    else { suppliers.unshift(obj); addAudit('Add Supplier', `Added supplier ${obj.name}`); }
+    saveAll();
+    closeModal();
+    renderAll();
+    toast(title.replace('Add ', '') + ' saved');
+  };
+}
+
+/* ——— 11. USER MANAGEMENT ——— */
+function openUserModal(u = null) {
+  if (!currentUser || currentUser.role !== 'super') {
+    toast('Only Super Admin can manage users'); return;
+  }
+  const isEdit = !!u;
+  openModal(`
+    <h2>${isEdit ? 'Edit User' : 'Add New User'}</h2>
+    <form id="userForm">
+      <div class="formgrid">
+        <div class="field full"><label>Full Name *</label><input name="name" required value="${esc(u?.name || '')}"></div>
+        <div class="field"><label>Username *</label><input name="username" required value="${esc(u?.username || '')}"></div>
+        <div class="field"><label>Password *</label><input name="password" required value="${esc(u?.password || '')}"></div>
+        <div class="field full"><label>Role *</label>
+          <select name="role" required>
+            <option value="super" ${u?.role === 'super' ? 'selected' : ''}>Super Admin</option>
+            <option value="manager" ${u?.role === 'manager' ? 'selected' : ''}>Manager</option>
+            <option value="sales" ${u?.role === 'sales' ? 'selected' : ''}>Sales Attendant</option>
+            <option value="store" ${u?.role === 'store' ? 'selected' : ''}>Storekeeper</option>
+            <option value="account" ${u?.role === 'account' ? 'selected' : ''}>Accountant</option>
+          </select>
+        </div>
+      </div>
+      <div class="modalfooter">
+        <button type="button" class="btn secondary" onclick="closeModal()">Cancel</button>
+        <button class="btn">${isEdit ? 'Update User' : 'Create User'}</button>
+      </div>
+    </form>
+  `);
+  document.getElementById('userForm').onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const obj = {
+      id: u?.id || 'u' + Date.now(),
+      name: f.get('name').trim(),
+      username: f.get('username').trim(),
+      password: f.get('password'),
+      role: f.get('role'),
+      created: u?.created || new Date().toISOString().slice(0, 10)
+    };
+    if (users.some(x => x.username.toLowerCase() === obj.username.toLowerCase() && x.id !== obj.id)) {
+      toast('Username already taken'); return;
+    }
+    if (isEdit) {
+      users = users.map(x => x.id === u.id ? obj : x);
+      addAudit('Edit User', `Updated user ${obj.name} (${obj.username})`);
+    } else {
+      users.push(obj);
+      addAudit('Add User', `Created user ${obj.name} (${obj.username})`);
+    }
+    saveAll();
+    closeModal();
+    renderUsers();
+    toast(isEdit ? 'User updated' : 'User created');
+  };
+}
+
+function editUser(id) {
+  const u = users.find(x => x.id === id);
+  if (u) openUserModal(u);
+}
+
+function deleteUser(id) {
+  if (!currentUser || currentUser.role !== 'super') return;
+  if (id === currentUser.id) { toast('You cannot delete your own account'); return; }
+  if (!confirm('Delete this user account?')) return;
+  const u = users.find(x => x.id === id);
+  users = users.filter(x => x.id !== id);
+  saveAll();
+  if (u) addAudit('Delete User', `Removed user ${u.name} (${u.username})`);
+  renderUsers();
+  toast('User deleted');
+}
+
+/* ——— 12. AUDIT ——— */
+function clearAudit() {
+  if (!currentUser || currentUser.role !== 'super') {
+    toast('Only Super Admin can clear the audit log'); return;
+  }
+  if (!confirm('Clear the entire audit log?')) return;
+  auditLog = [];
+  save(KEYS.audit, auditLog);
+  renderAudit();
+  toast('Audit log cleared');
+}
+
+/* ——— 13. EXPORT & RESET ——— */
+function exportProducts() {
+  if (!currentUser) return;
+  const csv = 'Name,SKU,Category,Cost,Price,Stock,Min Stock\n' +
+    products.map(p => [p.name, p.sku, p.category, p.cost, p.price, p.stock, p.min]
+      .map(v => '"' + String(v).replaceAll('"', '""') + '"').join(',')).join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'inventory-report.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  addAudit('Export', 'Exported inventory CSV');
+  toast('Inventory CSV exported');
+}
+
+function resetDemo() {
+  if (!currentUser || currentUser.role !== 'super') {
+    toast('Only Super Admin can reset demo data'); return;
+  }
+  if (!confirm('Reset all local demo data to its original sample state?')) return;
+  Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+  products = initialProducts.map(p => ({ ...p }));
+  sales = [];
+  customers = [];
+  suppliers = [];
+  users = initialUsers.map(u => ({ ...u }));
+  auditLog = [];
+  saveAll();
+  renderAll();
+  updateSidebarUser();
+  applyPermissions();
+  toast('Demo data reset');
+}
+
+/* ——— 14. REGISTRATION ——— */
+function showRegisterModal() {
+  openModal(`
+    <h2>Create a new account</h2>
+    <p style="color:var(--muted);font-size:13px;margin-bottom:18px">Create your account. New self-registered accounts receive a limited staff role; administrators can change permissions later.</p>
+    <form id="registerForm">
+      <div class="formgrid">
+        <div class="field full"><label>Full Name *</label><input name="name" required maxlength="80" autocomplete="name"></div>
+        <div class="field"><label>Username *</label><input name="username" required minlength="3" maxlength="30" autocomplete="username" pattern="[A-Za-z0-9._-]+" title="Use letters, numbers, dots, underscores or hyphens"></div>
+        <div class="field"><label>Password *</label><input name="password" type="password" required minlength="6" autocomplete="new-password"></div>
+        <div class="field full"><label>Confirm Password *</label><input name="confirmPassword" type="password" required minlength="6" autocomplete="new-password"></div>
+        <div class="field full"><label>Account Role *</label><select name="role" required><option value="sales">Sales Attendant</option><option value="store">Storekeeper</option><option value="account">Accountant</option></select></div>
+      </div>
+      <div class="modalfooter"><button type="button" class="btn secondary" onclick="closeModal()">Cancel</button><button class="btn" type="submit">Create Account</button></div>
+    </form>
+  `);
+  const form = document.getElementById('registerForm');
+  form.onsubmit = (e) => {
+    e.preventDefault();
+    const f = new FormData(form);
+    const fullName = String(f.get('name') || '').trim();
+    const username = String(f.get('username') || '').trim();
+    const password = String(f.get('password') || '');
+    const confirmPassword = String(f.get('confirmPassword') || '');
+    const role = String(f.get('role') || 'sales');
+    if (password !== confirmPassword) { toast('Passwords do not match'); return; }
+    if (users.some(x => String(x.username).toLowerCase() === username.toLowerCase())) { toast('Username already taken'); return; }
+    if (!['sales','store','account'].includes(role)) { toast('Invalid account role'); return; }
+    const account = { id: 'u' + Date.now(), name: fullName, username, password, role, created: new Date().toISOString().slice(0, 10) };
+    users.push(account);
+    saveAll();
+    closeModal();
+    showLoginFeedback('Account created successfully. Sign in using your new username and password.', 'success');
+    document.getElementById('loginUsername').value = username;
+    document.getElementById('loginPassword').value = '';
+    document.getElementById('loginPassword').focus();
+    toast('Account created. You can now sign in.');
+  };
+}
+
+/* ——— 15. EVENT BINDINGS ——— */
+document.addEventListener('DOMContentLoaded', () => {
+  // Login
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const u = document.getElementById('loginUsername').value.trim();
+    const p = document.getElementById('loginPassword').value;
+    login(u, p);
+  });
+
+  // Register link
+  document.getElementById('registerLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    showRegisterModal();
+  });
+
+  document.querySelectorAll('.demo-use').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('loginUsername').value = btn.dataset.username || '';
+      document.getElementById('loginPassword').value = btn.dataset.password || '';
+      showLoginFeedback('Demo credentials filled. Click Sign in to enter the system.', 'success');
+      document.getElementById('loginPassword').focus();
+    });
+  });
+
+  // Nav
+  document.querySelectorAll('.nav button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const page = btn.dataset.page;
+      if (page) switchPage(page);
+    });
+  });
+
+  // Mobile menu
+  document.getElementById('mobileMenuBtn').addEventListener('click', toggleSidebar);
+
+  // Dashboard quick buttons
+  document.getElementById('viewSalesBtn').addEventListener('click', () => switchPage('sales'));
+  document.getElementById('quickViewInventoryBtn').addEventListener('click', () => switchPage('products'));
+  document.getElementById('quickViewReportsBtn').addEventListener('click', () => switchPage('reports'));
+  document.getElementById('quickRecordSaleBtn').addEventListener('click', openSaleModal);
+
+  // Dashboard add product
+  document.getElementById('dashAddProductBtn').addEventListener('click', () => openProductModal());
+
+  // Products add
+  document.getElementById('prodAddProductBtn').addEventListener('click', () => openProductModal());
+
+  // Sales new
+  document.getElementById('salesNewSaleBtn').addEventListener('click', openSaleModal);
+
+  // Customers add
+  document.getElementById('custAddBtn').addEventListener('click', () => openSimpleModal('customer'));
+
+  // Suppliers add
+  document.getElementById('suppAddBtn').addEventListener('click', () => openSimpleModal('supplier'));
+
+  // Export
+  document.getElementById('exportBtn').addEventListener('click', exportProducts);
+
+  // Reset
+  document.getElementById('resetDemoBtn').addEventListener('click', resetDemo);
+
+  // Add user
+  document.getElementById('addUserBtn').addEventListener('click', () => openUserModal());
+
+  // Clear audit
+  document.getElementById('clearAuditBtn').addEventListener('click', clearAudit);
+
+  // Delegated action buttons (for dynamically rendered rows)
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-action]');
+    if (!btn) return;
+    const action = btn.dataset.action;
+    const id = btn.dataset.id;
+    if (action === 'edit-product') editProduct(Number(id));
+    if (action === 'delete-product') deleteProduct(Number(id));
+    if (action === 'edit-user') editUser(id);
+    if (action === 'delete-user') deleteUser(id);
+  });
+
+  // Start with login
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('appShell').style.display = 'none';
+
+  // Pre-render empty tables
+  renderUsers();
+  renderAudit();
+});
+
+/* ——— 16. GLOBAL EXPORTS ——— */
+window.switchPage = switchPage;
+window.toggleSidebar = toggleSidebar;
+window.globalSearch = globalSearch;
+window.openProductModal = openProductModal;
+window.editProduct = editProduct;
+window.deleteProduct = deleteProduct;
+window.openSaleModal = openSaleModal;
+window.openSimpleModal = openSimpleModal;
+window.openUserModal = openUserModal;
+window.editUser = editUser;
+window.deleteUser = deleteUser;
+window.clearAudit = clearAudit;
+window.exportProducts = exportProducts;
+window.resetDemo = resetDemo;
+window.showRegisterModal = showRegisterModal;
+window.closeModal = closeModal;
+window.login = login;
+window.logout = logout;
+window.renderProducts = renderProducts;
+window.renderSales = renderSales;
+window.renderCustomers = renderCustomers;
+window.renderSuppliers = renderSuppliers;
+window.renderUsers = renderUsers;
+window.renderAudit = renderAudit;
+window.receipt = receipt;
+</script>
+</body>
+</html>
